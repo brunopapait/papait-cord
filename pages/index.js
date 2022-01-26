@@ -1,34 +1,7 @@
 import { Box, Button, Image, Text, TextField } from '@skynexui/components';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
 import appConfig from '../config.json';
-
-function GlobalStyle() {
-  return (
-    <style global jsx>{`
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        list-style: none;
-      }
-      body {
-        font-family: 'Open Sans', sans-serif;
-      }
-      /* App fit Height */ 
-      html, body, #__next {
-        min-height: 100vh;
-        display: flex;
-        flex: 1;
-      }
-      #__next {
-        flex: 1;
-      }
-      #__next > * {
-        flex: 1;
-      }
-      /* ./App fit Height */ 
-    `}</style>
-  );
-}
 
 function Title({ title, tag }) {
   const Tag = tag;
@@ -59,11 +32,21 @@ function Title({ title, tag }) {
 // }
 
 export default function PaginaInicial() {
-  const username = 'brunopapait';
+  const [username, setUsername] = useState('');
+  const router = useRouter();
+
+  function handleChangeUsername(e) {
+    setUsername(e.target.value);
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    router.push('/chat');
+  }
 
   return (
     <>
-      <GlobalStyle />
       <Box
         styleSheet={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -90,6 +73,7 @@ export default function PaginaInicial() {
           {/* Formulário */}
           <Box
             as="form"
+            onSubmit={handleSubmit}
             styleSheet={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               width: { xs: '100%', sm: '50%' }, textAlign: 'center', marginBottom: '32px',
@@ -99,9 +83,10 @@ export default function PaginaInicial() {
             <Text variant="body3" styleSheet={{ marginBottom: '32px', color: appConfig.theme.colors.neutrals[300] }}>
               {appConfig.name}
             </Text>
-
             <TextField
               fullWidth
+              value={username}
+              onChange={handleChangeUsername}
               textFieldColors={{
                 neutral: {
                   textColor: appConfig.theme.colors.neutrals[200],
@@ -114,6 +99,7 @@ export default function PaginaInicial() {
             <Button
               type='submit'
               label='Entrar'
+              disabled={username.length < 2}
               fullWidth
               buttonColors={{
                 contrastColor: appConfig.theme.colors.neutrals["000"],
@@ -147,7 +133,7 @@ export default function PaginaInicial() {
                 borderRadius: '50%',
                 marginBottom: '16px',
               }}
-              src={`https://github.com/${username}.png`}
+              src={username.length >= 2 ? `https://github.com/${username}.png` : null}
             />
             <Text
               variant="body4"
