@@ -37,6 +37,10 @@ export default function ChatPage() {
     handleNewMessage();
   }
 
+  function handleRemoveMessage(messageId) {
+    setListMessage(prevState => prevState.filter(item => item.id !== messageId))
+  }
+
   return (
     <Box
       styleSheet={{
@@ -75,7 +79,7 @@ export default function ChatPage() {
           }}
         >
 
-          <MessageList mensagens={listMessage} />
+          <MessageList mensagens={listMessage} handleRemoveMessage={handleRemoveMessage} />
           <Box
             as="form"
             styleSheet={{
@@ -138,7 +142,7 @@ function Header() {
   )
 }
 
-function MessageList({ mensagens }) {
+function MessageList({ mensagens, handleRemoveMessage }) {
   const listRef = useRef();
 
   useEffect(() => {
@@ -171,38 +175,60 @@ function MessageList({ mensagens }) {
                 }
               }}
             >
+
               <Box
                 styleSheet={{
                   marginBottom: '8px',
                 }}
               >
-                <Image
-                  styleSheet={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                    marginRight: '8px',
-                  }}
-                  src={`https://github.com/${item.from}.png`}
-                />
-                <Text tag="strong">
-                  {item?.de}
-                </Text>
-                <Text
-                  styleSheet={{
-                    fontSize: '10px',
-                    marginLeft: '8px',
-                    color: appConfig.theme.colors.neutrals[300],
-                  }}
-                  tag="span"
-                >
-                  {item?.date}
-                </Text>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Image
+                      styleSheet={{
+                        width: '20px',
+                        height: '20px',
+                        borderRadius: '50%',
+                        display: 'inline-block',
+                        marginRight: '8px',
+                      }}
+                      src={`https://github.com/${item.from}.png`}
+                    />
+
+                    <Text tag="strong">
+                      {item?.from}
+                    </Text>
+                    <Text
+                      styleSheet={{
+                        fontSize: '10px',
+                        marginLeft: '8px',
+                        color: appConfig.theme.colors.neutrals[300],
+                      }}
+                      tag="span"
+                    >
+                      {item?.date}
+                    </Text>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveMessage(item.id)}
+                    style={{
+                      cursor: 'pointer',
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      display: 'inline-block',
+                      marginRight: '8px',
+                      background: appConfig.theme.colors.neutrals[300],
+                      border: 'none',
+                    }}>
+                    X
+                  </button>
+                </div>
               </Box>
               {item?.contentMessage}
             </Text>
+
           ))
+
         }
       </Box>
     </SimpleBar>
