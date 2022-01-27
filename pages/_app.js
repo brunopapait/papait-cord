@@ -1,5 +1,4 @@
 export default function MyApp({ Component, pageProps }) {
-  console.log('oie');
   return (
     <>
       <GlobalStyle />
