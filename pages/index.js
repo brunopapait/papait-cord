@@ -135,17 +135,21 @@ export default function PaginaInicial() {
               }}
               src={username.length >= 2 ? `https://github.com/${username}.png` : null}
             />
-            <Text
-              variant="body4"
-              styleSheet={{
-                color: appConfig.theme.colors.neutrals[200],
-                backgroundColor: appConfig.theme.colors.neutrals[900],
-                padding: '3px 10px',
-                borderRadius: '1000px'
-              }}
-            >
-              {username}
-            </Text>
+            {
+              username.length >= 2 &&
+              <Text
+                variant="body4"
+                styleSheet={{
+                  color: appConfig.theme.colors.neutrals[200],
+                  backgroundColor: appConfig.theme.colors.neutrals[900],
+                  padding: '3px 10px',
+                  borderRadius: '1000px'
+                }}
+              >
+                {username}
+              </Text>
+            }
+
           </Box>
           {/* Photo Area */}
         </Box>
