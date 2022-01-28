@@ -1,23 +1,49 @@
+import { Skeleton } from '@mui/material';
 import { Box, Button, Image, Text, TextField } from '@skynexui/components';
+import { createClient } from '@supabase/supabase-js';
 import React, { useEffect, useRef, useState } from 'react';
 import SimpleBar from 'simplebar-react';
 import 'simplebar/dist/simplebar.min.css';
 import appConfig from '../config.json';
 
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMzMDQxOCwiZXhwIjoxOTU4OTA2NDE4fQ.ryQ-Hwf-myqBySDMHRK_hRJUMbxUyCnfyIvSWR8VdhQ';
+const SUPABASE_URL = 'https://wgiwjjlhtplrcnhsfgoe.supabase.co';
+
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function ChatPage() {
   const [message, setMessage] = useState('');
   const [listMessage, setListMessage] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  function handleNewMessage() {
+  useEffect(() => {
+    setIsLoading(true);
+    async function loadListMessages() {
+      const { data } = await supabaseClient
+        .from('messages')
+        .select('*')
+        .order('id', { ascending: false });
+
+      setListMessage(data);
+      setIsLoading(false);
+
+    }
+
+    loadListMessages();
+
+  }, []);
+
+  async function handleNewMessage() {
     const customMessage = {
-      id: listMessage.length,
       from: 'brunopapait',
       contentMessage: message,
       date: new Date().toLocaleString()
     }
 
-    setListMessage(prevState => [customMessage, ...prevState]);
+    const { data } = await supabaseClient.from('messages')
+      .insert([customMessage]);
+
+    setListMessage(prevState => [...data, ...prevState]);
     setMessage('');
   }
 
@@ -37,8 +63,12 @@ export default function ChatPage() {
     handleNewMessage();
   }
 
-  function handleRemoveMessage(messageId) {
+  async function handleRemoveMessage(messageId) {
     setListMessage(prevState => prevState.filter(item => item.id !== messageId))
+
+    await supabaseClient.from('messages')
+      .delete()
+      .match({ id: messageId });
   }
 
   return (
@@ -62,6 +92,7 @@ export default function ChatPage() {
           height: '100%',
           maxWidth: '95%',
           maxHeight: '95vh',
+          minHeight: '95vh',
           padding: '32px',
         }}
       >
@@ -78,8 +109,39 @@ export default function ChatPage() {
             padding: '16px',
           }}
         >
-
-          <MessageList mensagens={listMessage} handleRemoveMessage={handleRemoveMessage} />
+          {
+            isLoading ?
+              <div className="skeleton" style={{ height: '100%', display: 'flex', flexDirection: 'column-reverse' }}>
+                {
+                  Array.from([1, 2, 3, 4, 5, 6]).map((_, index) => (
+                    <div key={index} style={{ marginBottom: '16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <Skeleton
+                          animation="wave"
+                          variant="circular"
+                          width={20}
+                          height={20}
+                          style={{
+                            display: 'inline-block',
+                            marginRight: '8px',
+                          }}
+                        />
+                        <Skeleton animation="wave" height={20} width="8%" style={{ marginRight: '3px' }} />
+                        <Skeleton animation="wave" height={20} width="8%" />
+                      </div>
+                      <Skeleton
+                        animation="wave"
+                        variant="rectangular"
+                        width="20%"
+                        height={40}
+                      />
+                    </div>
+                  ))
+                }
+              </div>
+              :
+              <MessageList mensagens={listMessage} handleRemoveMessage={handleRemoveMessage} />
+          }
           <Box
             as="form"
             styleSheet={{
@@ -120,7 +182,7 @@ export default function ChatPage() {
           </Box>
         </Box>
       </Box>
-    </Box>
+    </Box >
   )
 }
 
@@ -150,7 +212,7 @@ function MessageList({ mensagens, handleRemoveMessage }) {
   });
 
   return (
-    <SimpleBar ref={listRef} style={{ height: '90%' }}>
+    <SimpleBar ref={listRef} style={{ height: '93%' }}>
       <Box
         tag="ul"
         styleSheet={{
