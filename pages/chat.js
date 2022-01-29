@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import SimpleBar from 'simplebar-react';
 import 'simplebar/dist/simplebar.min.css';
 import appConfig from '../config.json';
+import { ButtonSendSticker } from '../src/components/ButtonSendSticker';
 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMzMDQxOCwiZXhwIjoxOTU4OTA2NDE4fQ.ryQ-Hwf-myqBySDMHRK_hRJUMbxUyCnfyIvSWR8VdhQ';
 const SUPABASE_URL = 'https://wgiwjjlhtplrcnhsfgoe.supabase.co';
@@ -26,24 +27,36 @@ export default function ChatPage() {
 
       setListMessage(data);
       setIsLoading(false);
-
     }
 
     loadListMessages();
-
   }, []);
 
-  async function handleNewMessage() {
+  useEffect(() => {
+    function onMessageRealTime() {
+      supabaseClient.from('messages')
+        .on('INSERT', (response) => {
+          setListMessage(prevState => [response.new, ...prevState]);
+        })
+        .subscribe();
+    }
+
+    const subscription = onMessageRealTime();
+    return () => subscription?.unsubscribe();
+  }, []);
+
+  async function handleNewMessage(msg) {
+    const username = JSON.parse(sessionStorage.getItem("username"));
+
     const customMessage = {
-      from: 'brunopapait',
-      contentMessage: message,
-      date: new Date().toLocaleString()
+      from: username,
+      contentMessage: msg,
+      date: new Date().toLocaleString(),
     }
 
     const { data } = await supabaseClient.from('messages')
       .insert([customMessage]);
 
-    setListMessage(prevState => [...data, ...prevState]);
     setMessage('');
   }
 
@@ -55,12 +68,12 @@ export default function ChatPage() {
     if (e.key === 'Enter') {
       e.preventDefault();
       message.length > 0 &&
-        handleNewMessage();
+        handleNewMessage(message);
     }
   }
 
   function handleSendMessage() {
-    handleNewMessage();
+    handleNewMessage(message);
   }
 
   async function handleRemoveMessage(messageId) {
@@ -69,6 +82,10 @@ export default function ChatPage() {
     await supabaseClient.from('messages')
       .delete()
       .match({ id: messageId });
+  }
+
+  function onStickerClick(sticker) {
+    handleNewMessage(`:sticker:${sticker}`);
   }
 
   return (
@@ -147,6 +164,7 @@ export default function ChatPage() {
             styleSheet={{
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             <TextField
@@ -163,9 +181,11 @@ export default function ChatPage() {
                 padding: '6px 8px',
                 backgroundColor: appConfig.theme.colors.neutrals[800],
                 marginRight: '12px',
+                marginLeft: '3px',
                 color: appConfig.theme.colors.neutrals[200],
               }}
             />
+            <ButtonSendSticker onStickerClick={onStickerClick} />
             <Button
               disabled={!message.length}
               iconName="FaTelegramPlane"
@@ -175,7 +195,7 @@ export default function ChatPage() {
                 mainColorLight: appConfig.theme.colors.primary[400],
                 mainColorStrong: appConfig.theme.colors.primary[600],
               }}
-              styleSheet={{ fontSize: '25px' }}
+              styleSheet={{ fontSize: '25px', marginLeft: '8px', alignSelf: 'flex-start' }}
               onClick={handleSendMessage}>
               Enviar
             </Button>
@@ -237,7 +257,6 @@ function MessageList({ mensagens, handleRemoveMessage }) {
                 }
               }}
             >
-
               <Box
                 styleSheet={{
                   marginBottom: '8px',
@@ -270,6 +289,7 @@ function MessageList({ mensagens, handleRemoveMessage }) {
                       {item?.date}
                     </Text>
                   </div>
+
                   <button
                     onClick={() => handleRemoveMessage(item.id)}
                     style={{
@@ -286,9 +306,12 @@ function MessageList({ mensagens, handleRemoveMessage }) {
                   </button>
                 </div>
               </Box>
-              {item?.contentMessage}
+              {
+                item.contentMessage.startsWith(':sticker:') ?
+                  <Image style={{ height: '80px', height: '80px' }} src={item?.contentMessage.replace(':sticker:', '')} /> :
+                  item?.contentMessage
+              }
             </Text>
-
           ))
 
         }

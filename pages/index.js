@@ -8,7 +8,6 @@ function Title({ title, tag }) {
   return (
     <>
       <Tag>{title}</Tag>
-
       <style jsx>{`
         ${Tag} {
           color: ${appConfig.theme.colors.neutrals['000']};
@@ -20,17 +19,6 @@ function Title({ title, tag }) {
   );
 }
 
-// export default function HomePage() {
-//   return (
-//     <div>
-//       <GlobalStyle />
-//       <Button />
-//       <Title tag="h6" title={"Boa noite Campo Mourão"} />
-//       <h2>Discord - papait-cord</h2>
-//     </div>
-//   );
-// }
-
 export default function PaginaInicial() {
   const [username, setUsername] = useState('');
   const router = useRouter();
@@ -41,8 +29,8 @@ export default function PaginaInicial() {
 
   function handleSubmit(e) {
     e.preventDefault();
-
-    router.push('/chat');
+    sessionStorage.setItem("username", JSON.stringify(username));
+    router.push(`/chat`);
   }
 
   return (
